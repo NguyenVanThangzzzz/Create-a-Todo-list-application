@@ -19,6 +19,8 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
+import android.os.Handler;
+
 public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTodoClickListener {
 
     private DatabaseHelper dbHelper;
@@ -32,6 +34,9 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
     private ListView listViewTodosTomorrow;
     private TodoAdapter adapterTomorrow;
     private List<Todo> todoListTomorrow;
+
+    private Handler handler = new Handler();
+    private Runnable deleteCompletedTodosRunnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,8 +52,8 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
 
         todoList = new ArrayList<>();
         todoListTomorrow = new ArrayList<>();
-        adapter = new TodoAdapter(this, todoList, this);
-        adapterTomorrow = new TodoAdapter(this, todoListTomorrow, this);
+        adapter = new TodoAdapter(this, todoList, this, true);  // Editable
+        adapterTomorrow = new TodoAdapter(this, todoListTomorrow, this, false);  // Non-editable
         listViewTodos.setAdapter(adapter);
         listViewTodosTomorrow.setAdapter(adapterTomorrow);
 
@@ -59,7 +64,21 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
 
         fabAdd.setOnClickListener(v -> showAddTodoDialog());
 
-        // Xóa hai dòng setOnItemClickListener cũ
+        deleteCompletedTodosRunnable = new Runnable() {
+            @Override
+            public void run() {
+                dbHelper.deleteCompletedTodos();
+                loadTodos();
+                handler.postDelayed(this, 60000); // Kiểm tra mỗi phút
+            }
+        };
+        handler.post(deleteCompletedTodosRunnable);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacks(deleteCompletedTodosRunnable);
     }
 
     private void loadTodos() {
@@ -172,11 +191,18 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
 
     @Override
     public void onTodoClick(Todo todo) {
-        showUpdateDeleteDialog(todo);
+        if (!todo.isChecked()) {
+            showUpdateDeleteDialog(todo);
+        }
     }
 
     @Override
     public void onTodoCheckedChange(Todo todo, boolean isChecked) {
         loadTodos(); // Tải lại danh sách để cập nhật vị trí của todo
+    }
+
+    @Override
+    public void onTodoCompleted(Todo todo) {
+        loadTodos();
     }
 }
