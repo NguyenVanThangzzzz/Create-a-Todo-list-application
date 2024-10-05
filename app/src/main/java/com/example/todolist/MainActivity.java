@@ -27,6 +27,8 @@ public class MainActivity extends AppCompatActivity {
     private List<Todo> todoList;
     private Calendar calendar;
     private SimpleDateFormat dateFormatter;
+    private TextView textViewToday;
+    private TextView textViewTomorrow;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +38,8 @@ public class MainActivity extends AppCompatActivity {
         dbHelper = new DatabaseHelper(this);
         listViewTodos = findViewById(R.id.listViewTodos);
         FloatingActionButton fabAdd = findViewById(R.id.fabAdd);
+        textViewToday = findViewById(R.id.textViewToday);
+        textViewTomorrow = findViewById(R.id.textViewTomorrow);
 
         todoList = new ArrayList<>();
         adapter = new TodoAdapter(this, todoList);
