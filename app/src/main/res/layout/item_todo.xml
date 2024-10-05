@@ -18,8 +18,9 @@
             android:layout_marginEnd="16dp" />
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:orientation="vertical">
 
             <TextView
@@ -39,6 +40,13 @@
                 android:textSize="14sp"/>
 
         </LinearLayout>
+
+        <ImageView
+            android:id="@+id/imageViewCompleted"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/baseline_check_24"
+            android:visibility="gone"/>
 
     </LinearLayout>
 

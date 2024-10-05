@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.core.content.ContextCompat;
 
@@ -41,12 +42,14 @@ public class TodoAdapter extends ArrayAdapter<Todo> {
         CheckBox checkBoxTodo = convertView.findViewById(R.id.checkBoxTodo);
         TextView textViewDate = convertView.findViewById(R.id.textViewDate);
         TextView textViewComment = convertView.findViewById(R.id.textViewComment);
+        ImageView imageViewCompleted = convertView.findViewById(R.id.imageViewCompleted);
 
         textViewDate.setText(todo.getDate());
         textViewComment.setText(todo.getComment());
 
         if (isEditable) {
             checkBoxTodo.setVisibility(View.VISIBLE);
+            imageViewCompleted.setVisibility(View.GONE);
             checkBoxTodo.setChecked(todo.isChecked());
             checkBoxTodo.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 todo.setChecked(isChecked);
@@ -62,16 +65,13 @@ public class TodoAdapter extends ArrayAdapter<Todo> {
             });
         } else {
             checkBoxTodo.setVisibility(View.GONE);
-            if (todo.isCompleted()) {
-                convertView.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.light_green));
-            } else {
-                convertView.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.white));
-            }
+            imageViewCompleted.setVisibility(todo.isCompleted() ? View.VISIBLE : View.GONE);
             convertView.setOnClickListener(v -> {
                 if (!todo.isCompleted()) {
                     todo.setCompleted(true);
                     todo.setCompletionTime(System.currentTimeMillis());
                     dbHelper.markTodoAsCompleted(todo);
+                    imageViewCompleted.setVisibility(View.VISIBLE);
                     notifyDataSetChanged();
                     if (onTodoClickListener != null) {
                         onTodoClickListener.onTodoCompleted(todo);
