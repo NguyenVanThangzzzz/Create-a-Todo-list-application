@@ -11,13 +11,14 @@ import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
-    private static final String DATABASE_NAME = "todolist.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
+    private static final String DATABASE_NAME = "TodoDB";
+    private static final String TABLE_TODO = "todos";
 
-    private static final String TABLE_TODO = "todo";
-    private static final String COLUMN_ID = "id";
-    private static final String COLUMN_DATE = "date";
-    private static final String COLUMN_COMMENT = "comment";
+    private static final String KEY_ID = "id";
+    private static final String KEY_DATE = "date";
+    private static final String KEY_COMMENT = "comment";
+    private static final String KEY_IS_CHECKED = "is_checked";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -26,9 +27,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         String CREATE_TODO_TABLE = "CREATE TABLE " + TABLE_TODO + "("
-                + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + COLUMN_DATE + " TEXT,"
-                + COLUMN_COMMENT + " TEXT" + ")";
+                + KEY_ID + " INTEGER PRIMARY KEY," + KEY_DATE + " TEXT,"
+                + KEY_COMMENT + " TEXT," + KEY_IS_CHECKED + " INTEGER" + ")";
         db.execSQL(CREATE_TODO_TABLE);
     }
 
@@ -38,51 +38,50 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    // Create
-    public long addTodo(String date, String comment) {
+    public void addTodo(String date, String comment) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(COLUMN_DATE, date);
-        values.put(COLUMN_COMMENT, comment);
-        long id = db.insert(TABLE_TODO, null, values);
+        values.put(KEY_DATE, date);
+        values.put(KEY_COMMENT, comment);
+        values.put(KEY_IS_CHECKED, 0); // 0 for false
+        db.insert(TABLE_TODO, null, values);
         db.close();
-        return id;
     }
 
-    // Read
     public List<Todo> getAllTodos() {
         List<Todo> todoList = new ArrayList<>();
         String selectQuery = "SELECT * FROM " + TABLE_TODO;
-        SQLiteDatabase db = this.getReadableDatabase();
+        SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
         if (cursor.moveToFirst()) {
             do {
-                Todo todo = new Todo();
-                todo.setId(cursor.getInt(cursor.getColumnIndex(COLUMN_ID)));
-                todo.setDate(cursor.getString(cursor.getColumnIndex(COLUMN_DATE)));
-                todo.setComment(cursor.getString(cursor.getColumnIndex(COLUMN_COMMENT)));
+                Todo todo = new Todo(
+                    cursor.getInt(0),
+                    cursor.getString(1),
+                    cursor.getString(2),
+                    cursor.getInt(3) == 1
+                );
                 todoList.add(todo);
             } while (cursor.moveToNext());
         }
         cursor.close();
-        db.close();
         return todoList;
     }
 
-    // Update
-    public int updateTodo(Todo todo) {
+    public void updateTodo(Todo todo) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(COLUMN_DATE, todo.getDate());
-        values.put(COLUMN_COMMENT, todo.getComment());
-        return db.update(TABLE_TODO, values, COLUMN_ID + " = ?",
+        values.put(KEY_DATE, todo.getDate());
+        values.put(KEY_COMMENT, todo.getComment());
+        values.put(KEY_IS_CHECKED, todo.isChecked() ? 1 : 0);
+        db.update(TABLE_TODO, values, KEY_ID + " = ?",
                 new String[]{String.valueOf(todo.getId())});
+        db.close();
     }
 
-    // Delete
     public void deleteTodo(Todo todo) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_TODO, COLUMN_ID + " = ?",
+        db.delete(TABLE_TODO, KEY_ID + " = ?",
                 new String[]{String.valueOf(todo.getId())});
         db.close();
     }

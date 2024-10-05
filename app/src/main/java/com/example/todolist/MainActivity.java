@@ -19,7 +19,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTodoClickListener {
 
     private DatabaseHelper dbHelper;
     private ListView listViewTodos;
@@ -29,6 +29,9 @@ public class MainActivity extends AppCompatActivity {
     private SimpleDateFormat dateFormatter;
     private TextView textViewToday;
     private TextView textViewTomorrow;
+    private ListView listViewTodosTomorrow;
+    private TodoAdapter adapterTomorrow;
+    private List<Todo> todoListTomorrow;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,10 +43,14 @@ public class MainActivity extends AppCompatActivity {
         FloatingActionButton fabAdd = findViewById(R.id.fabAdd);
         textViewToday = findViewById(R.id.textViewToday);
         textViewTomorrow = findViewById(R.id.textViewTomorrow);
+        listViewTodosTomorrow = findViewById(R.id.listViewTodosTomorrow);
 
         todoList = new ArrayList<>();
-        adapter = new TodoAdapter(this, todoList);
+        todoListTomorrow = new ArrayList<>();
+        adapter = new TodoAdapter(this, todoList, this);
+        adapterTomorrow = new TodoAdapter(this, todoListTomorrow, this);
         listViewTodos.setAdapter(adapter);
+        listViewTodosTomorrow.setAdapter(adapterTomorrow);
 
         calendar = Calendar.getInstance();
         dateFormatter = new SimpleDateFormat("EEEE dd/MM/yyyy", Locale.getDefault());
@@ -52,16 +59,22 @@ public class MainActivity extends AppCompatActivity {
 
         fabAdd.setOnClickListener(v -> showAddTodoDialog());
 
-        listViewTodos.setOnItemClickListener((parent, view, position, id) -> {
-            Todo todo = todoList.get(position);
-            showUpdateDeleteDialog(todo);
-        });
+        // Xóa hai dòng setOnItemClickListener cũ
     }
 
     private void loadTodos() {
         todoList.clear();
-        todoList.addAll(dbHelper.getAllTodos());
+        todoListTomorrow.clear();
+        List<Todo> allTodos = dbHelper.getAllTodos();
+        for (Todo todo : allTodos) {
+            if (todo.isChecked()) {
+                todoListTomorrow.add(todo);
+            } else {
+                todoList.add(todo);
+            }
+        }
         adapter.notifyDataSetChanged();
+        adapterTomorrow.notifyDataSetChanged();
     }
 
     private void showAddTodoDialog() {
@@ -155,5 +168,15 @@ public class MainActivity extends AppCompatActivity {
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH)).show();
+    }
+
+    @Override
+    public void onTodoClick(Todo todo) {
+        showUpdateDeleteDialog(todo);
+    }
+
+    @Override
+    public void onTodoCheckedChange(Todo todo, boolean isChecked) {
+        loadTodos(); // Tải lại danh sách để cập nhật vị trí của todo
     }
 }

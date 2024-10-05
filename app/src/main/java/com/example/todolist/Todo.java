@@ -4,13 +4,16 @@ public class Todo {
     private int id;
     private String date;
     private String comment;
+    private boolean isChecked;
 
     public Todo() {
     }
 
-    public Todo(String date, String comment) {
+    public Todo(int id, String date, String comment, boolean isChecked) {
+        this.id = id;
         this.date = date;
         this.comment = comment;
+        this.isChecked = isChecked;
     }
 
     public int getId() {
@@ -35,5 +38,13 @@ public class Todo {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public boolean isChecked() {
+        return isChecked;
+    }
+
+    public void setChecked(boolean checked) {
+        isChecked = checked;
     }
 }
