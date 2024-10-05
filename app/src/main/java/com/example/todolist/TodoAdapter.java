@@ -8,7 +8,6 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
 import androidx.core.content.ContextCompat;
-import android.graphics.Color;
 
 import java.util.List;
 
